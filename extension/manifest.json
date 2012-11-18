@@ -1,0 +1,22 @@
+{
+   "content_scripts": [ {
+      "exclude_globs": [  ],
+      "exclude_matches": [  ],
+      "include_globs": [ "http://stackapps.com/*", "http://*.stackoverflow.com/*", "http://*.stackexchange.com/*", "http://stackoverflow.com/*", "http://*.onstartups.com/*", "http://serverfault.com/*", "http://*.serverfault.com/*", "http://superuser.com/*", "http://*.superuser.com/*" ],
+      "js": [ "stackInbox.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_idle"
+   } ],
+   "converted_from_user_script": true,
+   "description": "Preserves New Stack Exchange Inbox Messages Until They Are Actually Read.",
+   "key": "TjV/gUmXolHI1t/x5kBHl+6GrFvDxqAzIf8egNvTwF0=",
+   "name": "StackInbox",
+   "version": "0.0.1",
+   "manifest_version": 2,
+   "permissions" : [
+       "storage", "https://api.stackexchange.com/*"
+   ],
+   "icons": { "16": "StackInbox128-7.png",
+           "48": "StackInbox128-7.png",
+          "128": "StackInbox128-7.png" }
+}
