@@ -60,7 +60,7 @@ window.addEventListener("load", function() {
 
 function getAccountIdFromStorage(siteUser, injectScript) {
 
-    console.info("userId = " + siteUser.userId + " : display Name = " + siteUser.displayName + " : site = " + siteUser.site);
+    //console.info("userId = " + siteUser.userId + " : display Name = " + siteUser.displayName + " : site = " + siteUser.site);
 
     // get Chrome Extension storage
     chrome.storage.local.get(null, (function(injectScript) {
@@ -74,12 +74,12 @@ function getAccountIdFromStorage(siteUser, injectScript) {
                 // if data for this site+userId not found, get the information from the SE API
                 getDataFromApi(siteUser, storage, injectScript);
             } else {
-                console.info("accountId = " + accountId);
+                //console.info("accountId = " + accountId);
                 ext_s = storage;
                 injectScript(storage.stackInbox["account-"+accountId]);
             }
         } else {        
-            console.info("no accounts found. Allocate storage...");
+            //console.info("no accounts found. Allocate storage...");
             storage.accounts = {};
             getDataFromApi(siteUser, storage, injectScript);
         }
@@ -92,7 +92,7 @@ function getAccountIdFromStorage(siteUser, injectScript) {
 // This is used in development only to avoid hitting the quotas on the APIs
   // if you're doing development on this script, replace with your data from the API
 function getDataFromApiTest(siteUser, storage, injectScript) {
-    console.warn("Using CACHED DATA to avoid maxing out API...");
+    //console.warn("Using CACHED DATA to avoid maxing out API...");
     xhr = {};
     xhr.readyState = 4;
     if(siteUser.site == "stackoverflow") {
@@ -119,7 +119,7 @@ function getDataFromApi(siteUser, storage, injectScript) {
     // for testing to avoid killing the SE API! Uncomment when developing/debugging
 //    getDataFromApiTest(siteUser, storage, injectScript); return;
     
-    console.info("get data from api");
+    //console.info("get data from api");
     
     // get account id
     xhr = new XMLHttpRequest();
@@ -129,7 +129,7 @@ function getDataFromApi(siteUser, storage, injectScript) {
         }
     })(siteUser, storage, injectScript);  // Implemented elsewhere.
 
-    console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
+    //console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
     xhr.open("GET", "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
     xhr.send();    
     
@@ -137,9 +137,9 @@ function getDataFromApi(siteUser, storage, injectScript) {
 
 // get the accountId from the API response
 function getAccountId(siteUser, storage, injectScript) {
-    console.info("inside getAccountId...");
+    //console.info("inside getAccountId...");
     if(xhr.readyState == 4) {
-      console.info("ready...");
+      //console.info("ready...");
 //    if(xhr.status == 200) { alert("done")
         result = xhr.responseText;
         resultArr = JSON.parse(result).items;
@@ -149,23 +149,23 @@ function getAccountId(siteUser, storage, injectScript) {
                 break;
             }
         }
-        console.info("accountId = " + siteUser.accountId);
+        //console.info("accountId = " + siteUser.accountId);
         // init app
         storage.accounts[siteUser.site+"-"+siteUser.userId] = siteUser.accountId;      
         if(!storage.stackInbox) {
             storage.stackInbox = {};
             storage.stackInbox["account-"+siteUser.accountId] = {"newItemCol" : "", "account_id" : siteUser.accountId };
         }
-        console.info("storage accounts = " + JSON.stringify(storage.accounts));  
+        //console.info("storage accounts = " + JSON.stringify(storage.accounts));  
         ext_s = storage;
-        console.info("inject data in page...");
+        //console.info("inject data in page...");
         injectScript(storage.stackInbox["account-"+siteUser.accountId]);
 
         // storing the accountId with the site+userId combo for future pageloads and to avoid hitting the API needlessly
         chrome.storage.local.set(storage, function() {
-               console.info("accounts data stored...");
+               //console.info("accounts data stored...");
 	       chrome.storage.local.get(null, function(s) {
-	           console.info("this is stored = " + JSON.stringify(s));
+	           //console.info("this is stored = " + JSON.stringify(s));
 	       });
         });
     }
@@ -175,14 +175,14 @@ function getAccountId(siteUser, storage, injectScript) {
 
 // receive message from page context
 window.addEventListener("message", function(event) { 
-    console.info("data received = " + JSON.stringify(event.data));
+    //console.info("data received = " + JSON.stringify(event.data));
     
     m_storage.stackInbox["account-" + event.data.account_id] = {"newItemCol" : event.data.newItemCol, "account_id" : event.data.account_id };
     
     chrome.storage.local.set(m_storage, function() { } );
     
     chrome.storage.local.get(null, function(ssss) { 
-        console.info("After storing data, we now have = " + JSON.stringify(ssss));
+        //console.info("After storing data, we now have = " + JSON.stringify(ssss));
     } );
 
 }, false);
@@ -195,7 +195,7 @@ function injectScriptInSE(stackInboxStorage) {
     */
     with_jquery(function ($, stackInboxStorage) {
 
-        console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
+        //console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
         window.localStorage.setItem("newItemCol", stackInboxStorage.newItemCol);
 
         var log = {
@@ -203,7 +203,7 @@ function injectScriptInSE(stackInboxStorage) {
         };
         if (window.localStorage) if (window.localStorage.getItem("stackInbox-logs-enabled") == "true") {
             log.info = function (text) {
-                console.info(text);
+                //console.info(text);
             }
         }
 
@@ -211,7 +211,7 @@ function injectScriptInSE(stackInboxStorage) {
 
         // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
         $('#portalLink > .genu').click(function () {
-            console.log("Clicked SE menu");
+            //console.log("Clicked SE menu");
             $('#seTabInbox').click(); // UNCOMMENT ME
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
@@ -219,7 +219,7 @@ function injectScriptInSE(stackInboxStorage) {
             //    if(storedUnreadItemsArr.length > 0) {
             if (window.localStorage.getItem("newItemCol").split(",") != "") {
             
-                console.info("clicked portalLink....");
+                //console.info("clicked portalLink....");
 
                 // not sure why this block is needed, seems to do the same as the block in the body click event, but commenting
                  // even doesn't seem to matter...                
@@ -258,8 +258,8 @@ function injectScriptInSE(stackInboxStorage) {
                         $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
                         $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
                     }
-                    console.log("show the unread count...");
-                    console.log("storedItem length = " + storedUnreadItemsArr.length);
+                    //console.log("show the unread count...");
+                    //console.log("storedItem length = " + storedUnreadItemsArr.length);
                     $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
                     $('#portalLink > a.unreadCount').show();
                 }
@@ -276,7 +276,7 @@ function injectScriptInSE(stackInboxStorage) {
 
             if (element.tagName == 'DIV') {
                 if (element.id == 'seContainerInbox') {
-                    //console.info($('#seContainerInbox').parent().get(0).tagName);
+                    ////console.info($('#seContainerInbox').parent().get(0).tagName);
                     trimStoredItems();
                     $('#seTabInbox').click();
 
@@ -294,18 +294,18 @@ function injectScriptInSE(stackInboxStorage) {
 
         function trimStoredItems() {
             var storedItems = getStoredUnreadItems();
-            console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
+            //console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
             if (storedItems != null) {
                 for (var i = 0; storedItems != null && i < storedItems.length; i++) {
                     if ($('#seContainerInbox').find('a[href="' + storedItems[i] + '"]').length == 0 || storedItems[i] == "null" || storedItems == "") {
-                        console.log("Remove " + storedItems[i]);
+                        //console.log("Remove " + storedItems[i]);
                         storedItems.splice(i, 1);
                     }
                 }
 
                 window.localStorage.setItem("newItemCol", storedItems);
                 updateStorage(storedItems);
-                console.log("trimmed storedItems = " + storedItems.toString());
+                //console.log("trimmed storedItems = " + storedItems.toString());
 
             }
         }
@@ -374,8 +374,8 @@ function injectScriptInSE(stackInboxStorage) {
                         $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
                         $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
                     }
-                    console.log("show the unread count...");
-                    console.log("storedItem length = " + storedUnreadItemsArr.length);
+                    //console.log("show the unread count...");
+                    //console.log("storedItem length = " + storedUnreadItemsArr.length);
                     $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
                     $('#portalLink > a.unreadCount').show();
                 }
@@ -387,7 +387,7 @@ function injectScriptInSE(stackInboxStorage) {
         top.window.processData = processData;
         function processData() {
 
-            console.log("Inside StackInbox pageload...");
+            //console.log("Inside StackInbox pageload...");
             if (window.localStorage.getItem("newItemCol") == null) window.localStorage.setItem("newItemCol", []);
             var newCount = getNewCount();
             if (newCount != null) {
@@ -416,11 +416,11 @@ function injectScriptInSE(stackInboxStorage) {
             var newItemCol = $('#seContainerInbox').find('.itemBoxNew');
             var newItemHrefArr = [];
             $('#seContainerInbox').find('.itemBoxNew').find('a[href]:first').each(function () {
-                console.log($(this).attr("href"));
+                //console.log($(this).attr("href"));
                 newItemHrefArr.push($(this).attr("href"));
             });
 
-            //console.info(".newItemCol");
+            ////console.info(".newItemCol");
             var currentUnreadItemArr = [];
             var finalUnreadItemArr = [];
 
@@ -461,7 +461,7 @@ function injectScriptInSE(stackInboxStorage) {
             if (window.localStorage.getItem("newItemCol") != null) {
                 var count = 0;
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
-                console.info("currentUnreadItemArr.length = " + currentUnreadItemArr.length);
+                //console.info("currentUnreadItemArr.length = " + currentUnreadItemArr.length);
                 $('#seContainerInbox').find(".itemBox").each(function (e) {
                     if ($(this).find('a[href]:first').attr("href") == currentUnreadItemArr[e]) {
                         $(this).addClass("itemBoxNew");
@@ -470,7 +470,7 @@ function injectScriptInSE(stackInboxStorage) {
                 });
 
                 if (currentUnreadItemArr == null) {
-                    console.log("null detected...");
+                    //console.log("null detected...");
                 }
 
                 for (var i = 0; i < currentUnreadItemArr.length; i++) {
@@ -503,10 +503,10 @@ function injectScriptInSE(stackInboxStorage) {
         top.window.applyClickHandlersToStoredUnreadItems = applyClickHandlersToStoredUnreadItems;
         function applyClickHandlersToStoredUnreadItems() {
             $('.itemBoxNew').each(function (e) {
-                console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
+                //console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
                 $(this).find("a[href]").click(function (e) {
                     e.preventDefault();
-                    console.log("link = " + $(this).attr("href"));
+                    //console.log("link = " + $(this).attr("href"));
                     removeItemFromStorage($(this).attr("href"));
                     $('.itemBoxNew > a[href="' + $(this).attr("href") + '"]').parent().removeClass("itemBoxNew");
 
@@ -526,7 +526,7 @@ function injectScriptInSE(stackInboxStorage) {
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
                 var index = currentUnreadItemArr.indexOf(removeableItemHref);
                 currentUnreadItemArr.splice(index, 1);
-                console.log("removed Item; new array = " + currentUnreadItemArr);
+                //console.log("removed Item; new array = " + currentUnreadItemArr);
 
                 // uncomment when ready to register the clicks and remove from storage
                 window.localStorage.setItem("newItemCol", currentUnreadItemArr);
