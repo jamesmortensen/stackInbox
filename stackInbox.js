@@ -1,14 +1,11 @@
 // ==UserScript==
 // @name          StackInbox 
 // @namespace     StackInbox
-// @icon          http://www.gravatar.com/avatar.php?gravatar_id=e615596ec6d7191ab628a1f0cec0006d&r=PG&s=48&default=identicon#.png
 // @description   Keeps unread items highlighted in the Stack Exchange inbox until each item is read.
 // @copyright     2012, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
 // @license       BSD License
-// @license       (CC); http://creativecommons.org/licenses/by-nc-sa/3.0/
-// @version       0.0.1
+// @version       0.0.2
 //
-// @require   storage.js
 //
 // @include   http://stackapps.com/*
 // @include   http://*.stackoverflow.com/*
@@ -19,6 +16,8 @@
 // @include   http://*.onstartups.com/*
 //
 // ==/UserScript==
+
+// injects script into the http context
 function with_jquery(f, data) {
     var script = document.createElement("script");
     script.type = "text/javascript";
@@ -27,11 +26,11 @@ function with_jquery(f, data) {
 };
 
 
-//chrome.storage.local.set({"stackInbox": [ { "display_name":"jmort253","newItemCol":"http://meta.stackoverflow.com/posts/comments/442391,http://serverfault.com/posts/comments/482296" } ] }, function(sss) { alert(sss); });
-
 
 window.addEventListener("load", function() { 
 
+    // hook to deal with pageloads for chat messages from the inbox
+    // TODO: Yet to be implemented due to unknown method to determine current user in transcript page
     if(window.location.hostname == "chat.stackexchange.com") {
     
         var displayName = $('.mention').html().toString().substring(1);
@@ -39,10 +38,6 @@ window.addEventListener("load", function() {
            
         return;
     }
-
-    // insert the diamond
-    var diamond = document.createElement("span"); diamond.setAttribute("class","mod-flair"); diamond.setAttribute("title","moderator");diamond.innerHTML="&diams;";
-    document.querySelector("#hlinks-user").insertBefore(diamond, document.querySelector("#hlinks-user > .profile-link").nextSibling);
 
     // scrape the user profile information
     var profileArr = document.querySelector("#hlinks-user .profile-link").getAttribute("href").split("/");  
@@ -56,26 +51,27 @@ window.addEventListener("load", function() {
     }
     site = site.slice(0,site.length-1);
 
+    // assume computer may be used by more than one SE user, so get user's accountId from display name
     getAccountIdFromStorage({"site" : site, "userId" : userId, "displayName" : displayName }, injectScriptInSE);
 
-
-
-//initStorage();
  });
 
-//ext_s.stackInbox[265671] = { "display_name":"jmort253","newItemCol" : "http://meta.stackoverflow.com/posts/comments/442391,http://serverfault.com/posts/comments/482296" };
+
 
 function getAccountIdFromStorage(siteUser, injectScript) {
 
     console.info("userId = " + siteUser.userId + " : display Name = " + siteUser.displayName + " : site = " + siteUser.site);
 
+    // get Chrome Extension storage
     chrome.storage.local.get(null, (function(injectScript) {
       return function(storage) {
         m_storage = storage;
         var accounts = storage.accounts;
         if(accounts) { 
+            // accountId identifies the user on any SE site
             var accountId = accounts[siteUser.site+"-"+siteUser.userId];
             if(!accountId) {
+                // if data for this site+userId not found, get the information from the SE API
                 getDataFromApi(siteUser, storage, injectScript);
             } else {
                 console.info("accountId = " + accountId);
@@ -93,6 +89,8 @@ function getAccountIdFromStorage(siteUser, injectScript) {
 
 }
 
+// This is used in development only to avoid hitting the quotas on the APIs
+  // if you're doing development on this script, replace with your data from the API
 function getDataFromApiTest(siteUser, storage, injectScript) {
     console.warn("Using CACHED DATA to avoid maxing out API...");
     xhr = {};
@@ -115,13 +113,14 @@ function getDataFromApiTest(siteUser, storage, injectScript) {
     getAccountId(siteUser, storage, injectScript);
 }
 
-
+// get the accountId for the user from the API, and store it
 function getDataFromApi(siteUser, storage, injectScript) {  
 
-    // for testing to avoid killing the SE API!
+    // for testing to avoid killing the SE API! Uncomment when developing/debugging
 //    getDataFromApiTest(siteUser, storage, injectScript); return;
     
     console.info("get data from api");
+    
     // get account id
     xhr = new XMLHttpRequest();
     xhr.onreadystatechange = (function(siteUser, storage, injectScript) { 
@@ -129,15 +128,14 @@ function getDataFromApi(siteUser, storage, injectScript) {
             getAccountId(siteUser, storage, injectScript);
         }
     })(siteUser, storage, injectScript);  // Implemented elsewhere.
-//    xhr.onreadystatechange = getAccountId;
+
     console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
     xhr.open("GET", "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
     xhr.send();    
     
-//    https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname=jmort253&site=stackoverflow&filter=!*MxJcsxUhQG*kL8D&callback=test
-
 }
 
+// get the accountId from the API response
 function getAccountId(siteUser, storage, injectScript) {
     console.info("inside getAccountId...");
     if(xhr.readyState == 4) {
@@ -162,9 +160,8 @@ function getAccountId(siteUser, storage, injectScript) {
         ext_s = storage;
         console.info("inject data in page...");
         injectScript(storage.stackInbox["account-"+siteUser.accountId]);
-/*        chrome.storage.local.set(storage.stackInbox, function() {
-               console.info("stackInbox data stored...");
-        });*/
+
+        // storing the accountId with the site+userId combo for future pageloads and to avoid hitting the API needlessly
         chrome.storage.local.set(storage, function() {
                console.info("accounts data stored...");
 	       chrome.storage.local.get(null, function(s) {
@@ -175,13 +172,8 @@ function getAccountId(siteUser, storage, injectScript) {
 
 }
 
-//        for(var i = 0 ; i < storage.length; i++) {
-//            if(storage[i].display_name == )
-       
-  //      }
 
-
-// receive message from page
+// receive message from page context
 window.addEventListener("message", function(event) { 
     console.info("data received = " + JSON.stringify(event.data));
     
@@ -196,16 +188,12 @@ window.addEventListener("message", function(event) {
 }, false);
 
 
-
+// take the storage and pass relevant data and business logic into the page context
 function injectScriptInSE(stackInboxStorage) {
     /**
- This is code added to the page context.
-*/
+      This is code added to the page context.
+    */
     with_jquery(function ($, stackInboxStorage) {
-
-        // API to get accountId without OAuth - scrape displayname....
-        // https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname=jmort253&site=stackoverflow&filter=!*MxJcsxUhQG*kL8D&callback=test
-
 
         console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
         window.localStorage.setItem("newItemCol", stackInboxStorage.newItemCol);
@@ -259,14 +247,14 @@ function injectScriptInSE(stackInboxStorage) {
             if ($('#seWrapper:visible').length > 0) {
 
                 var storedUnreadItemsArr = getStoredUnreadItems();
-                //        if(storedUnreadItemsArr.length > 0) {
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
                     if ($('#portalLink').find(".unreadCount").length == 0) {
-//                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:blue;box-shadow: 0 0 8px 0 blue;"></a>');
+
+                        // add the unread count bubble to the inbox
                         $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
 
                     } else {
-//                        $('#portalLink .unreadCount').css('background-color', 'blue');
+                        // bubble already present, so just change the colors
                         $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
                         $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
                     }
@@ -279,38 +267,21 @@ function injectScriptInSE(stackInboxStorage) {
 
         });
 
-        //  alert(jQuery('#seTabInbox').html());
-        //  alert('Hello, World!222');
-
-        //},5000);
-
-        //})();
-        $(document).ready(function () {
-            console.log("StackInbox:: Ready...");
-            try {
-           //     pageload();
-            } catch (e) {
-                alert("error calling pageload :: " + e.message);
-            }
-
-        });
 
         // since the inbox contents aren't loaded until clicked, this forces the 
         // applyNewStyleToItems function to wait until the data is loaded
+        // TODO: There's a better way to do this and listen for DOM changes
         document.addEventListener("DOMNodeInserted", function (event) {
             var element = event.target;
 
             if (element.tagName == 'DIV') {
                 if (element.id == 'seContainerInbox') {
-                    //alert($('#seContainerInbox').parent().get(0).tagName);
+                    //console.info($('#seContainerInbox').parent().get(0).tagName);
                     trimStoredItems();
                     $('#seTabInbox').click();
-                    //   var newCount = getNewCount();
-                    //     if(newCount != null) {
+
                     // if there are new inbox items, store them for later
                     storeNewInboxItems();
-
-                    // }
 
                     applyNewStyleToItems();
                     applyClickHandlersToStoredUnreadItems();
@@ -331,8 +302,6 @@ function injectScriptInSE(stackInboxStorage) {
                         storedItems.splice(i, 1);
                     }
                 }
-//                stackUser.newItemCol = storedItems.toString();
-  //              jsonp("http://stackinbox.goodluckwith.us/store.php?account_id=" + stackUser.account_id + "&user_id=" + stackUser.user_id + "&display_name=" + stackUser.display_name + "&newItemCol=" + stackUser.newItemCol);
 
                 window.localStorage.setItem("newItemCol", storedItems);
                 updateStorage(storedItems);
@@ -341,8 +310,10 @@ function injectScriptInSE(stackInboxStorage) {
             }
         }
 
-        top.window.jsonp = jsonp;
 
+        // for cross domain json requests. 
+        // TODO: This is currently unused. Remove if determined to not be needed
+        top.window.jsonp = jsonp;
         function jsonp(url, callback) {
             return;
             var script = document.createElement("script");
@@ -350,38 +321,21 @@ function injectScriptInSE(stackInboxStorage) {
             script.setAttribute("src", url + "&t=" + new Date().getTime());
             document.getElementsByTagName("head")[0].appendChild(script);
 
-
         }
         
+
+        // update the Chrome Extension storage by passing the data, with accountId, back to the background process to be stored.        
         top.window.updateStorage = updateStorage;
         function updateStorage(newItemColStr) {
 
             window.postMessage({ type: "FROM_PAGE = " + window.location.hostname, newItemCol: newItemColStr, account_id: stackInboxStorage.account_id }, "*");
-            
-//            window.postMessage({ type: "FROM_PAGE", text: "Hello from the webpage!" }, "*");
-            
-        
-        }
-
-        top.window.initStorage = getUser;
-        function getUser() {
-            
-
-        }
-
-        top.window.loadStorage;
-
-        function loadStorage(storage) {
-            s = storage;
 
         }
 
 
+        // runs in the page context to deploy business logic
         top.window.pageload = pageload;
-
         function pageload() {
-
-            //jsonp("http://stackinbox.goodluckwith.us/?account_id=-3&callback=processData");
             
             var newItemColArr = stackInboxStorage.newItemCol.split(',');
             var item;
@@ -395,24 +349,28 @@ function injectScriptInSE(stackInboxStorage) {
                 
                 // if the link was right clicked and opened in a new tab, check the URL, and if the pattern is found, remove from storage
                 if(window.location.hostname == itemArr[2] && itemArr[3] == 'posts' && itemArr[4] == 'comments' && window.location.href.match("comment"+itemArr[5]+"_")) {
+
                     // remove comment from list
                     removeItemFromStorage(item);                    
+
                 } else if(window.location.hostname == itemArr[2] && itemArr[3] == 'questions' && window.location.href.match(/\d*\#\d*$/) == itemArr[6]) {
+
                     // remove answer to user's question from list
                     removeItemFromStorage(item);                 
                 }
             }
 
-//// move to fn if this works
+                // TODO: consider moving to separate function, if reusable to avoid duplicate code
+                    // as there is another section that is similar to this!
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 //        if(storedUnreadItemsArr.length > 0) {
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
                     if ($('#portalLink').find(".unreadCount").length == 0) {
-//                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:blue;box-shadow: 0 0 8px 0 blue;"></a>');
+
                         $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
 
                     } else {
-//                        $('#portalLink .unreadCount').css('background-color', 'blue');
+
                         $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
                         $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
                     }
@@ -421,19 +379,14 @@ function injectScriptInSE(stackInboxStorage) {
                     $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
                     $('#portalLink > a.unreadCount').show();
                 }
-////
+                //// end TODO
 
 
         }
 
         top.window.processData = processData;
-
         function processData() {
-  //          stackUser = _stackUser;
-//            window.localStorage.setItem("newItemCol", JSON.stringify(stackUser.newItemCol));
-            //        window.localStorage.setItem("user_id", JSON.stringify(stackUser.user_id));
-            //      window.localStorage.setItem("display_name", JSON.stringify(stackUser.display_name));
-            //    window.localStorage.setItem("account_id", JSON.stringify(stackUser.account_id));
+
             console.log("Inside StackInbox pageload...");
             if (window.localStorage.getItem("newItemCol") == null) window.localStorage.setItem("newItemCol", []);
             var newCount = getNewCount();
@@ -446,22 +399,19 @@ function injectScriptInSE(stackInboxStorage) {
             // check localStorage for still unread items and show them as still unread.
             applyNewStyleToItems();
             var storedUnreadItemsArr = getStoredUnreadItems();
-            //if(storedUnreadItemsArr.length > 0) {
 
             if (window.localStorage.getItem("newItemCol").split(",") != "" && storedUnreadItemsArr != null) {
-//                $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:black;box-shadow: 0 0 8px 0 blue; "></a>');
+
                 $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
 
                 $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
                 $('#portalLink > a.unreadCount').fadeIn(900);
-                /*            genuwine.init();
-            genuwine.setUnreadCount( storedUnreadItemsArr.length ); */
+
             }
         }
 
 
         top.window.storeNewInboxItems = storeNewInboxItems;
-
         function storeNewInboxItems() {
             var newItemCol = $('#seContainerInbox').find('.itemBoxNew');
             var newItemHrefArr = [];
@@ -470,33 +420,30 @@ function injectScriptInSE(stackInboxStorage) {
                 newItemHrefArr.push($(this).attr("href"));
             });
 
-            //alert(".newItemCol");
+            //console.info(".newItemCol");
             var currentUnreadItemArr = [];
             var finalUnreadItemArr = [];
 
             currentUnreadItemArr = getStoredUnreadItems();
-            //        if(window.localStorage.getItem("newItemCol") == null) {
+
             if (currentUnreadItemArr == null) {
                 finalUnreadItemArr = newItemHrefArr;
             } else {
-                //            currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
+
                 finalUnreadItemArr = currentUnreadItemArr.concat(newItemHrefArr);
             }
 
             window.localStorage.setItem("newItemCol", finalUnreadItemArr);
             stackUser = {};
             stackUser.newItemCol = finalUnreadItemArr.toString();
-            
+    
+            // make sure updates are stored        
             updateStorage(finalUnreadItemArr.toString());
-            
-            //jsonp("http://stackinbox.goodluckwith.us/store.php?account_id=" + stackUser.account_id + "&user_id=" + stackUser.user_id + "&display_name=" + stackUser.display_name + "&newItemCol=" + stackUser.newItemCol);
-
         }
 
 
-        //window.localStorage.setItem("newItemCol", [])
-        top.window.getStoredUnreadItems = getStoredUnreadItems;
 
+        top.window.getStoredUnreadItems = getStoredUnreadItems;
         function getStoredUnreadItems() {
             if (window.localStorage.getItem("newItemCol") != "") {
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
@@ -507,8 +454,8 @@ function injectScriptInSE(stackInboxStorage) {
 
         }
 
-        top.window.applyNewStyleToItems = applyNewStyleToItems;
 
+        top.window.applyNewStyleToItems = applyNewStyleToItems;
         function applyNewStyleToItems() {
 
             if (window.localStorage.getItem("newItemCol") != null) {
@@ -540,10 +487,9 @@ function injectScriptInSE(stackInboxStorage) {
             }
         }
 
-        // <a class="unreadCount" style="" title="unread messages in your inbox">1</a>
+
         // run this on pageload to check for new items only
         top.window.getNewCount = getNewCount;
-
         function getNewCount() {
             var newCount = 0;
             if ($('#portalLink > .unreadCount').length > 0) {
@@ -553,8 +499,8 @@ function injectScriptInSE(stackInboxStorage) {
         }
 
 
+        // when an inbox item is clicked, we remove it from storage, update the background process, then visit the link
         top.window.applyClickHandlersToStoredUnreadItems = applyClickHandlersToStoredUnreadItems;
-
         function applyClickHandlersToStoredUnreadItems() {
             $('.itemBoxNew').each(function (e) {
                 console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
@@ -573,8 +519,8 @@ function injectScriptInSE(stackInboxStorage) {
         }
 
 
+        // remove item from storage, and update background process storage
         top.window.removeItemFromStorage = removeItemFromStorage;
-
         function removeItemFromStorage(removeableItemHref) {
             if (window.localStorage.getItem("newItemCol") != null) {
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
@@ -584,23 +530,12 @@ function injectScriptInSE(stackInboxStorage) {
 
                 // uncomment when ready to register the clicks and remove from storage
                 window.localStorage.setItem("newItemCol", currentUnreadItemArr);
-                //stackUser.newItemCol = currentUnreadItemArr.toString();
+
+                // pass updates to storage in the background process
                 updateStorage(currentUnreadItemArr.toString());
-//                jsonp("http://stackinbox.goodluckwith.us/store.php?account_id=" + stackUser.account_id + "&user_id=" + stackUser.user_id + "&display_name=" + stackUser.display_name + "newItemCol=" + stackUser.newItemCol);
-                // click the link here?
             }
         }
 
-        top.window.clickedInboxItemHandler = clickedInboxItemHandler;
-
-        function clickedInboxItemHandler(e) {
-            // get href of clicked item
-            console.log(e);
-
-            // get data from local storage
-
-
-        }
 
     }, stackInboxStorage);
 }
