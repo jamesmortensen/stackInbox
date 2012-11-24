@@ -10,6 +10,7 @@
    "converted_from_user_script": true,
    "description": "Preserves New Stack Exchange Inbox Messages Until They Are Actually Read.",
    "name": "StackInbox",
+   "homepage_url": "http://stackapps.com/q/3778/4812",
    "version": "0.0.2",
    "manifest_version": 2,
    "permissions" : [

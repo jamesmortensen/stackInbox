@@ -1,7 +1,9 @@
 // ==UserScript==
 // @name          StackInbox 
-// @namespace     StackInbox
+// @namespace     http://stackapps.com/q/3778/4812
+// @author        jmort253 (http://stackoverflow.com/users/552792)
 // @description   Keeps unread items highlighted in the Stack Exchange inbox until each item is read.
+// @homepage      http://stackapps.com/q/3778/4812
 // @copyright     2012, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
 // @license       BSD License
 // @version       0.0.2
@@ -12,6 +14,8 @@
 // @include   http://stackoverflow.com/*
 // @include   http://*.serverfault.com/*
 // @include   http://serverfault.com/*
+// @include   http://*.superuser.com/*
+// @include   http://superuser.com/*
 // @include   http://*.stackexchange.com/*
 // @include   http://*.onstartups.com/*
 //
