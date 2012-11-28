@@ -2,7 +2,8 @@
    "content_scripts": [ {
       "exclude_globs": [  ],
       "exclude_matches": [  ],
-      "include_globs": [ "http://stackapps.com/*", "http://*.stackoverflow.com/*", "http://*.stackexchange.com/*", "http://stackoverflow.com/*", "http://*.onstartups.com/*", "http://serverfault.com/*", "http://*.serverfault.com/*", "http://superuser.com/*", "http://*.superuser.com/*" ],
+      "include_globs": [ "http://stackapps.com/*", "http://*.stackoverflow.com/*", "http://*.stackexchange.com/*", "http://stackoverflow.com/*", "http://*.onstartups.com/*", "http://serverfault.com/*", "http://*.serverfault.com/*", "http://superuser.com/*", "http://*.superuser.com/*", 
+      "http://askubuntu.com", "http://*.askubuntu.com" ],
       "js": [ "stackInbox.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_idle"

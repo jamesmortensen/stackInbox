@@ -18,6 +18,8 @@
 // @include   http://superuser.com/*
 // @include   http://*.stackexchange.com/*
 // @include   http://*.onstartups.com/*
+// @include   http://*.askubuntu.com/*
+// @include   http://askubuntu.com/*
 //
 // ==/UserScript==
 
@@ -96,7 +98,7 @@ function getAccountIdFromStorage(siteUser, injectScript) {
 // This is used in development only to avoid hitting the quotas on the APIs
   // if you're doing development on this script, replace with your data from the API
 function getDataFromApiTest(siteUser, storage, injectScript) {
-    //console.warn("Using CACHED DATA to avoid maxing out API...");
+    console.warn("Using CACHED DATA to avoid maxing out API...");
     xhr = {};
     xhr.readyState = 4;
     if(siteUser.site == "stackoverflow") {
