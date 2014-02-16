@@ -4,9 +4,9 @@
 // @author        jmort253 (http://stackoverflow.com/users/552792)
 // @description   Keeps unread items highlighted in the Stack Exchange inbox until each item is read.
 // @homepage      http://stackapps.com/q/3778/4812
-// @copyright     2012, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
+// @copyright     2012-2014, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
 // @license       BSD License
-// @version       0.0.2
+// @version       1.1
 //
 //
 // @include   http://stackapps.com/*
@@ -20,6 +20,8 @@
 // @include   http://*.onstartups.com/*
 // @include   http://*.askubuntu.com/*
 // @include   http://askubuntu.com/*
+//
+// @history   Updated class names to work with the new top navigation as of Feb 2014
 //
 // ==/UserScript==
 
@@ -46,7 +48,7 @@ window.addEventListener("load", function() {
     }
 
     // scrape the user profile information
-    var profileArr = document.querySelector("#hlinks-user .profile-link").getAttribute("href").split("/");  
+    var profileArr = document.querySelector(".topbar-links a.profile-me").getAttribute("href").split("/");  
     var userId = profileArr[2];
     var displayName = profileArr[3];
 
@@ -66,7 +68,7 @@ window.addEventListener("load", function() {
 
 function getAccountIdFromStorage(siteUser, injectScript) {
 
-    //console.info("userId = " + siteUser.userId + " : display Name = " + siteUser.displayName + " : site = " + siteUser.site);
+    console.info("userId = " + siteUser.userId + " : display Name = " + siteUser.displayName + " : site = " + siteUser.site);
 
     // get Chrome Extension storage
     chrome.storage.local.get(null, (function(injectScript) {
@@ -80,12 +82,12 @@ function getAccountIdFromStorage(siteUser, injectScript) {
                 // if data for this site+userId not found, get the information from the SE API
                 getDataFromApi(siteUser, storage, injectScript);
             } else {
-                //console.info("accountId = " + accountId);
+                console.info("accountId = " + accountId);
                 ext_s = storage;
                 injectScript(storage.stackInbox["account-"+accountId]);
             }
         } else {        
-            //console.info("no accounts found. Allocate storage...");
+            console.info("no accounts found. Allocate storage...");
             storage.accounts = {};
             getDataFromApi(siteUser, storage, injectScript);
         }
@@ -125,7 +127,7 @@ function getDataFromApi(siteUser, storage, injectScript) {
     // for testing to avoid killing the SE API! Uncomment when developing/debugging
 //    getDataFromApiTest(siteUser, storage, injectScript); return;
     
-    //console.info("get data from api");
+    console.info("get data from api");
     
     // get account id
     xhr = new XMLHttpRequest();
@@ -135,7 +137,7 @@ function getDataFromApi(siteUser, storage, injectScript) {
         }
     })(siteUser, storage, injectScript);  // Implemented elsewhere.
 
-    //console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
+    console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
     xhr.open("GET", "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
     xhr.send();    
     
@@ -143,9 +145,9 @@ function getDataFromApi(siteUser, storage, injectScript) {
 
 // get the accountId from the API response
 function getAccountId(siteUser, storage, injectScript) {
-    //console.info("inside getAccountId...");
+    console.info("inside getAccountId...");
     if(xhr.readyState == 4) {
-      //console.info("ready...");
+      console.info("ready...");
 //    if(xhr.status == 200) { alert("done")
         result = xhr.responseText;
         resultArr = JSON.parse(result).items;
@@ -155,23 +157,23 @@ function getAccountId(siteUser, storage, injectScript) {
                 break;
             }
         }
-        //console.info("accountId = " + siteUser.accountId);
+        console.info("accountId = " + siteUser.accountId);
         // init app
         storage.accounts[siteUser.site+"-"+siteUser.userId] = siteUser.accountId;      
         if(!storage.stackInbox) {
             storage.stackInbox = {};
             storage.stackInbox["account-"+siteUser.accountId] = {"newItemCol" : "", "account_id" : siteUser.accountId };
         }
-        //console.info("storage accounts = " + JSON.stringify(storage.accounts));  
+        console.info("storage accounts = " + JSON.stringify(storage.accounts));  
         ext_s = storage;
-        //console.info("inject data in page...");
+        console.info("inject data in page...");
         injectScript(storage.stackInbox["account-"+siteUser.accountId]);
 
         // storing the accountId with the site+userId combo for future pageloads and to avoid hitting the API needlessly
         chrome.storage.local.set(storage, function() {
-               //console.info("accounts data stored...");
+               console.info("accounts data stored...");
 	       chrome.storage.local.get(null, function(s) {
-	           //console.info("this is stored = " + JSON.stringify(s));
+	           console.info("this is stored = " + JSON.stringify(s));
 	       });
         });
     }
@@ -181,14 +183,14 @@ function getAccountId(siteUser, storage, injectScript) {
 
 // receive message from page context
 window.addEventListener("message", function(event) { 
-    //console.info("data received = " + JSON.stringify(event.data));
+    console.info("data received = " + JSON.stringify(event.data));
     
     m_storage.stackInbox["account-" + event.data.account_id] = {"newItemCol" : event.data.newItemCol, "account_id" : event.data.account_id };
     
     chrome.storage.local.set(m_storage, function() { } );
     
     chrome.storage.local.get(null, function(ssss) { 
-        //console.info("After storing data, we now have = " + JSON.stringify(ssss));
+        console.info("After storing data, we now have = " + JSON.stringify(ssss));
     } );
 
 }, false);
@@ -201,7 +203,7 @@ function injectScriptInSE(stackInboxStorage) {
     */
     with_jquery(function ($, stackInboxStorage) {
 
-        //console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
+        console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
         window.localStorage.setItem("newItemCol", stackInboxStorage.newItemCol);
 
         var log = {
@@ -209,23 +211,23 @@ function injectScriptInSE(stackInboxStorage) {
         };
         if (window.localStorage) if (window.localStorage.getItem("stackInbox-logs-enabled") == "true") {
             log.info = function (text) {
-                //console.info(text);
+                console.info(text);
             }
         }
 
         pageload();
 
         // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
-        $('#portalLink > .genu').click(function () {
-            //console.log("Clicked SE menu");
-            $('#seTabInbox').click(); // UNCOMMENT ME
+        $('.icon-inbox').click(function () {
+            console.log("Clicked SE menu");
+            //$('#seTabInbox').click(); // UNCOMMENT ME
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
             var storedUnreadItemsArr = getStoredUnreadItems();
             //    if(storedUnreadItemsArr.length > 0) {
             if (window.localStorage.getItem("newItemCol").split(",") != "") {
             
-                //console.info("clicked portalLink....");
+                console.info("clicked portalLink....");
 
                 // not sure why this block is needed, seems to do the same as the block in the body click event, but commenting
                  // even doesn't seem to matter...                
@@ -249,43 +251,61 @@ function injectScriptInSE(stackInboxStorage) {
 
         // this is to keep the unread count visible when closing the notification panel
         $('body').click(function () {
-
-            if ($('#seWrapper:visible').length > 0) {
-
+            
+            console.debug("body click event fired...");
+           // if ($('.unread-count:visible').length > 0) {
+                console.debug("unread count visible...");
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('#portalLink').find(".unreadCount").length == 0) {
+                    if ($('.icon-inbox').find(".unread-count").length == 0) {
 
                         // add the unread count bubble to the inbox
-                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
 
                     } else {
+                        //event.preventDefault();event.stopPropagation();
                         // bubble already present, so just change the colors
-                        $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
-                        $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
+                        $('.icon-inbox > .unread-count').css('background-color', 'rgb(19, 151, 192)');
+                        $('.icon-inbox > .unread-count').css('box-shadow', '0 0 8px 0 blue');
+                        $('.icon-inbox > .unread-count').css('display', 'inline-block');
+
                     }
-                    //console.log("show the unread count...");
-                    //console.log("storedItem length = " + storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').show();
+                    console.log("body.click :: show the unread count...");
+                    console.log("body.click :: storedItem length = " + storedUnreadItemsArr.length);
+                    $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
+                    $('.icon-inbox > .unread-count').show();
+                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                    
+                    $('.icon-site-switcher-on').removeClass('icon-site-switcher-on');
+                    $('.topbar-icon-on').removeClass('topbar-icon-on');
+                    $('.topbar-dialog').hide();
                 }
-            }
+           // }
 
         });
 
-
+//$('.js-topbar-dialog-corral .inbox-dialog .modal-content ul ').append("<li>test3</li>");
         // since the inbox contents aren't loaded until clicked, this forces the 
         // applyNewStyleToItems function to wait until the data is loaded
         // TODO: There's a better way to do this and listen for DOM changes
-        document.addEventListener("DOMNodeInserted", function (event) {
+        /*document.addEventListener("DOMNodeInserted", function (event) {
             var element = event.target;
 
-            if (element.tagName == 'DIV') {
-                if (element.id == 'seContainerInbox') {
-                    ////console.info($('#seContainerInbox').parent().get(0).tagName);
+            if (true || element.tagName == 'DIV' || element.tagName == 'LI' || element.tagName == 'UL') {
+                console.info("element.tagName = " + element.tagName);
+                console.info("element.id = " + element.id);
+                console.info("element.className = " + element.className);
+                console.info("header = " + $('.inbox-dialog .header').html())
+                //if (element.className.match(/js-topbar-dialog-corral/) != null || 
+                  //  element.className.match(/inbox-dialog/) != null || 
+                  //  element.className.match(/modal-content/) != null    
+                  //  ) {
+                if(element.tagName == 'DIV' && element.className == 'inbox-dialog') {
+                    console.info("trim and store ... " + $('.js-topbar-dialog-corral').parent().get(0).tagName);
                     trimStoredItems();
-                    $('#seTabInbox').click();
-
+                    $('.icon-inbox').click();
+                    console.info("DOMNodeInserted :: expanding inbox-dialog");
                     // if there are new inbox items, store them for later
                     storeNewInboxItems();
 
@@ -294,24 +314,69 @@ function injectScriptInSE(stackInboxStorage) {
 
                 }
             }
+        });*/
+
+        /*
+         * Detect changes in the DOM using event-based methodology so we apply styles
+         * and click events when the menu is done loading.
+         */
+        var insertedNodes = [];
+        var observer = new MutationObserver(function(mutations) {
+         console.log("inside callback....");
+         mutations.forEach(function(mutation) {
+           console.log(mutation);
+           for (var i = 0; i < mutation.addedNodes.length; i++) {
+             console.log("push...");
+             insertedNodes.push(mutation.addedNodes[i]);
+             var node = mutation.addedNodes[i];
+             if(node.className !== undefined) {
+                var classArr = node.className.match(/(topbar|inbox)-dialog/g);
+                if(classArr != null && classArr.length == 2) {
+                   console.debug("trim, store, and apply styles/click handlers");
+                   trimStoredItems();
+                   storeNewInboxItems();
+
+                   applyNewStyleToItems();
+                   applyClickHandlersToStoredUnreadItems();
+                } 
+             } if(true || mutation.target.className == "unread-count") {
+                console.debug("UNREAD TARGET");
+                if ($('.icon-inbox').find(".unread-count").length > 0) {
+                    console.debug("keep the unread count visible if there's a value there");
+                    // add the unread count bubble to the inbox
+                    //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                }
+            }
+           }
+           console.info("DONE!");
+           insertedNodes = [];
+         })
         });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        console.log(insertedNodes);
+
+        // debugging
+        function getInsertedNodes() { return insertedNodes; }
+        top.window.getInsertedNodes = getInsertedNodes;
+
 
         top.window.trimStoredItems = trimStoredItems;
 
-        function trimStoredItems() {
+        function trimStoredItems() {return;
             var storedItems = getStoredUnreadItems();
-            //console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
+            console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
             if (storedItems != null) {
                 for (var i = 0; storedItems != null && i < storedItems.length; i++) {
-                    if ($('#seContainerInbox').find('a[href="' + storedItems[i] + '"]').length == 0 || storedItems[i] == "null" || storedItems == "") {
-                        //console.log("Remove " + storedItems[i]);
+                    if ($('.inbox-item').find('a[href="' + storedItems[i] + '"]').length == 0 || storedItems[i] == "null" || storedItems == "") {
+                        console.log("Remove " + storedItems[i]);
                         storedItems.splice(i, 1);
                     }
                 }
 
                 window.localStorage.setItem("newItemCol", storedItems);
                 updateStorage(storedItems);
-                //console.log("trimmed storedItems = " + storedItems.toString());
+                console.log("trimmed storedItems = " + storedItems.toString());
 
             }
         }
@@ -342,7 +407,23 @@ function injectScriptInSE(stackInboxStorage) {
         // runs in the page context to deploy business logic
         top.window.pageload = pageload;
         function pageload() {
-            
+
+            $('body').append("<style>" + 
+            ".topbar .icon-inbox .stackInbox-unread-count {" +
+            "    background-color: rgb(19, 151, 192);" +
+            "    display: inline-block;" +
+            "    margin-top: 9px;" +
+            "    color: #fff;" +
+            "    text-indent: 0;" +
+            "    border-radius: 2px;" +
+            "    padding: 1px 6px 1px 6px;" +
+            "    font-size: 11px;" +
+            "    line-height: 1;" +
+            "    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif !important;" +
+            "}</style>");
+
+            $('.unread-count').parent().append('<span class="stackInbox-unread-count">6</span>');
+
             var newItemColArr = stackInboxStorage.newItemCol.split(',');
             var item;
             var itemArr = [];
@@ -371,19 +452,21 @@ function injectScriptInSE(stackInboxStorage) {
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 //        if(storedUnreadItemsArr.length > 0) {
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('#portalLink').find(".unreadCount").length == 0) {
+                    if ($('.icon-inbox').find(".unread-count").length == 0) {
 
-                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
 
                     } else {
 
-                        $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
-                        $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
+                        $('.icon-inbox .unread-count').css('background-color', 'rgb(19, 151, 192)');
+                        $('.icon-inbox .unread-count').css('box-shadow', '0 0 8px 0 blue');
                     }
-                    //console.log("show the unread count...");
-                    //console.log("storedItem length = " + storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').show();
+                    console.log("pageload :: show the unread count...");
+                    console.log("pageload :: storedItem length = " + storedUnreadItemsArr.length);
+                    $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
+                    $('.icon-inbox > .unread-count').show();
+                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
                 }
                 //// end TODO
 
@@ -393,7 +476,7 @@ function injectScriptInSE(stackInboxStorage) {
         top.window.processData = processData;
         function processData() {
 
-            //console.log("Inside StackInbox pageload...");
+            console.log("Inside StackInbox pageload...");
             if (window.localStorage.getItem("newItemCol") == null) window.localStorage.setItem("newItemCol", []);
             var newCount = getNewCount();
             if (newCount != null) {
@@ -408,10 +491,10 @@ function injectScriptInSE(stackInboxStorage) {
 
             if (window.localStorage.getItem("newItemCol").split(",") != "" && storedUnreadItemsArr != null) {
 
-                $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
+                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
 
-                $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                $('#portalLink > a.unreadCount').fadeIn(900);
+                $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
+                $('.icon-inbox > .unread-count').fadeIn(900);
 
             }
         }
@@ -419,14 +502,14 @@ function injectScriptInSE(stackInboxStorage) {
 
         top.window.storeNewInboxItems = storeNewInboxItems;
         function storeNewInboxItems() {
-            var newItemCol = $('#seContainerInbox').find('.itemBoxNew');
+            var newItemCol = $('.inbox-dialog').find('.unread-item');
             var newItemHrefArr = [];
-            $('#seContainerInbox').find('.itemBoxNew').find('a[href]:first').each(function () {
-                //console.log($(this).attr("href"));
+            $('.inbox-dialog').find('.unread-item').find('a[href]:first').each(function () {
+                console.log($(this).attr("href"));
                 newItemHrefArr.push($(this).attr("href"));
             });
 
-            ////console.info(".newItemCol");
+            //console.info(".newItemCol");
             var currentUnreadItemArr = [];
             var finalUnreadItemArr = [];
 
@@ -467,24 +550,26 @@ function injectScriptInSE(stackInboxStorage) {
             if (window.localStorage.getItem("newItemCol") != null) {
                 var count = 0;
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
-                //console.info("currentUnreadItemArr.length = " + currentUnreadItemArr.length);
-                $('#seContainerInbox').find(".itemBox").each(function (e) {
+                console.info("currentUnreadItemArr.length = " + currentUnreadItemArr.length);
+                $('.inbox-dialog').find(".inbox-item").each(function (e) {
                     if ($(this).find('a[href]:first').attr("href") == currentUnreadItemArr[e]) {
-                        $(this).addClass("itemBoxNew");
+                        $(this).addClass("unread-item");
+                        $(this).addClass("unread");
                         count++;
                     }
                 });
 
                 if (currentUnreadItemArr == null) {
-                    //console.log("null detected...");
+                    console.log("null detected...");
                 }
 
                 for (var i = 0; i < currentUnreadItemArr.length; i++) {
-                    $('#seContainerInbox').find('.itemBox').find('a[href="' + currentUnreadItemArr[i] + '"]').parent().filter('div').addClass('itemBoxNew');
+                    $('.inbox-dialog').find('.inbox-item').find('a[href="' + currentUnreadItemArr[i] + '"]').parent().filter('li').addClass('unread-item');
                 }
 
-                count = $('#seContainerInbox').find(".itemBoxNew").length;
-                $('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
+                count = $('.inbox-dialog').find(".unread-item").length;
+                //$('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
+                $('.icon-inbox').find('.unread-count').html(count).css('display','block');
                 if (count == 0) {
                     $('#seTabInbox .unreadCountTab').hide();
                 }
@@ -498,8 +583,8 @@ function injectScriptInSE(stackInboxStorage) {
         top.window.getNewCount = getNewCount;
         function getNewCount() {
             var newCount = 0;
-            if ($('#portalLink > .unreadCount').length > 0) {
-                newCount = parseInt($('#portalLink > .unreadCount').html());
+            if ($('.icon-inbox > .unread-count').length > 0) {
+                newCount = parseInt($('.icon-inbox > .unread-count').html());
             }
             return newCount;
         }
@@ -508,13 +593,13 @@ function injectScriptInSE(stackInboxStorage) {
         // when an inbox item is clicked, we remove it from storage, update the background process, then visit the link
         top.window.applyClickHandlersToStoredUnreadItems = applyClickHandlersToStoredUnreadItems;
         function applyClickHandlersToStoredUnreadItems() {
-            $('.itemBoxNew').each(function (e) {
-                //console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
+            $('.unread-item').each(function (e) {
+                console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
                 $(this).find("a[href]").click(function (e) {
                     e.preventDefault();
-                    //console.log("link = " + $(this).attr("href"));
+                    console.log("link = " + $(this).attr("href"));
                     removeItemFromStorage($(this).attr("href"));
-                    $('.itemBoxNew > a[href="' + $(this).attr("href") + '"]').parent().removeClass("itemBoxNew");
+                    $('.unread-item > a[href="' + $(this).attr("href") + '"]').parent().removeClass("unread-item");
 
                     // now go to the link
                     window.location = $(this).attr("href");
@@ -532,7 +617,7 @@ function injectScriptInSE(stackInboxStorage) {
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
                 var index = currentUnreadItemArr.indexOf(removeableItemHref);
                 currentUnreadItemArr.splice(index, 1);
-                //console.log("removed Item; new array = " + currentUnreadItemArr);
+                console.log("removed Item; new array = " + currentUnreadItemArr);
 
                 // uncomment when ready to register the clicks and remove from storage
                 window.localStorage.setItem("newItemCol", currentUnreadItemArr);
