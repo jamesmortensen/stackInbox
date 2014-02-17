@@ -48,9 +48,9 @@ function preload() {
            
         return;
     }
-
+console.debug("GET PROFILE INFO")
     // scrape the user profile information
-    var profileArr = document.querySelector("#hlinks-user .profile-link").getAttribute("href").split("/");  
+    var profileArr = document.querySelector(".topbar-links a.profile-me").getAttribute("href").split("/");  
     var userId = profileArr[2];
     var displayName = profileArr[3];
 
@@ -241,11 +241,11 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
         pageload();
 
         // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
-        $('#portalLink > .genu').click(function () {
+        $('.icon-inbox').click(function () {
             console.log("Clicked SE menu");
-            $('#seTabInbox').click(); // UNCOMMENT ME
-document.getElementById('seTabInbox').click();
-console.info("click handler = " + document.getElementById('seTabInbox').click); 
+            $('.stackInbox-unread-count').hide();
+            $('.stackInbox-unread-count').css('display','none');
+            //$('#seTabInbox').click(); // UNCOMMENT ME
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
             var storedUnreadItemsArr = getStoredUnreadItems();
@@ -262,8 +262,8 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
                     $('#portalLink .unreadCount').css('background-color', 'yellow');
                 }
                 $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                $('#portalLink > a.unreadCount').show();
-*/
+                $('#portalLink > a.unreadCount').show();*/
+
 
                 /*        if( ) {
             window.localStorage.removeItem("newItemCol");
@@ -275,7 +275,7 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
         });
 
         // this is to keep the unread count visible when closing the notification panel
-        $('body').click(function () {
+        $('body').click(function () { return;
 
             if ($('#seWrapper:visible').length > 0) {
 
@@ -304,7 +304,7 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
         // since the inbox contents aren't loaded until clicked, this forces the 
         // applyNewStyleToItems function to wait until the data is loaded
         // TODO: There's a better way to do this and listen for DOM changes
-        document.addEventListener("DOMNodeInserted", function (event) {
+        /*document.addEventListener("DOMNodeInserted", function (event) {
             var element = event.target;
 
             if (element.tagName == 'DIV') {
@@ -333,7 +333,95 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
                     }
                 }
             }
+        });*/
+
+       /*
+         * Detect changes in the DOM using event-based methodology so we apply styles
+         * and click events when the menu is done loading.
+         */
+        var insertedNodes = [];
+        var observer = new MutationObserver(function(mutations) {
+         console.log("inside callback....");
+         mutations.forEach(function(mutation) {
+           console.log(mutation);
+           if(mutation.previousSibling.nodeType == 1)
+           for (var i = 0; i < mutation.addedNodes.length; i++) {
+             console.log("push...");
+             insertedNodes.push(mutation.addedNodes[i]);
+             var node = mutation.addedNodes[i];
+             if(node.className !== undefined) {
+                var classArr = node.className.match(/(topbar|inbox)-dialog/g);
+                if(classArr != null && classArr.length == 2) {
+                   console.debug("trim, store, and apply styles/click handlers");
+                   trimStoredItems();
+                   storeNewInboxItems();
+
+                   applyNewStyleToItems();
+                   applyClickHandlersToStoredUnreadItems();
+                } 
+             }
+           } 
+         })
         });
+        observer.observe(document.querySelector(".js-topbar-dialog-corral"), { childList: true, subtree: false, attributes: false });
+        console.log(insertedNodes);
+
+
+
+        var observer2 = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+           if(mutation.target.className == "unread-count") {
+            console.debug("UNREAD TARGET");
+            if ($('.icon-inbox').find(".unread-count:visible").length > 0) {
+                console.debug("keep the unread count visible if there's a value there");
+                hideUnreadCount();
+                // add the unread count bubble to the inbox
+                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                //showUnreadCount();
+                //$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+
+            } else {
+                var items = getStoredUnreadItems();
+                var count = 0;
+                $('.icon-inbox .unread-count').html("");
+                if(items != null) {
+                    count = items.length;
+                    console.info("observer2 :: the count should be updated to be " + count);
+                    $('.icon-inbox .stackInbox-unread-count').html(count);
+                }
+
+                showUnreadCount();
+                $('.icon-inbox .stackInbox-unread-count').show();
+            }
+           }
+       
+           if(mutation.target.className == "unread-count" && mutation.attributeName == "style" && mutation.target.style.display == "") {   //&& mutation.target.outerHTML.match(/inline/) != null) {
+               hideUnreadCount();
+               console.info("span.stackInbox-unread-count mutator fires for style");
+           }
+           console.info("DONE!");
+
+         })
+        });
+        observer2.observe(document.querySelector(".icon-inbox .unread-count"), { childList: true, subtree: true, attributes: true });
+        
+
+        // debugging
+        function getInsertedNodes() { return insertedNodes; }
+        top.window.getInsertedNodes = getInsertedNodes;
+
+        function showUnreadCount() {
+            if($('.icon-inbox .unread-count').css('background-color') == "rgb(255, 0, 0)" && $('.icon-inbox .unread-count').html().trim().length > 0) {
+                console.info("don't change the color if it's red");
+            } else {
+                $('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+            }
+        }
+
+        function hideUnreadCount() {
+            $('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+        }
 
         top.window.trimStoredItems = trimStoredItems;
 
@@ -342,7 +430,7 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
             console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
             if (storedItems != null) {
                 for (var i = 0; storedItems != null && i < storedItems.length; i++) {
-                    if ($('#seContainerInbox').find('a[href="' + storedItems[i] + '"]').length == 0 || storedItems[i] == "null" || storedItems == "") {
+                    if ($('.inbox-item').find('a[href="' + storedItems[i] + '"]').length == 0 || storedItems[i] == "null" || storedItems == "") {
                         console.log("Remove " + storedItems[i]);
                         storedItems.splice(i, 1);
                     }
@@ -379,13 +467,27 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
 
 
         // runs in the page context to deploy business logic
+        // runs in the page context to deploy business logic
         top.window.pageload = pageload;
         function pageload() {
-            console.info("Inside pageload...");
-            if(window.localStorage.getItem("newItemCol") == null)
-                window.localStorage.setItem("newItemCol","");
 
-            var newItemColArr = window.localStorage.getItem("newItemCol") != "" ? getStoredUnreadItems() : [];
+            $('body').append("<style>" + 
+            ".topbar .icon-inbox .stackInbox-unread-count {" +
+            "    background-color: rgb(19, 151, 192);" +
+            "    display: inline-block;" +
+            "    margin-top: 9px;" +
+            "    color: #fff;" +
+            "    text-indent: 0;" +
+            "    border-radius: 2px;" +
+            "    padding: 1px 6px 1px 6px;" +
+            "    font-size: 11px;" +
+            "    line-height: 1;" +
+            "    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif !important;" +
+            "}</style>");
+
+            $('.unread-count').parent().append('<span style="display:none" class="stackInbox-unread-count"></span>');
+
+            var newItemColArr = stackInboxStorage.newItemCol.split(',');
             var item;
             var itemArr = [];
             var urlArr = [];
@@ -398,12 +500,12 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
                 // if the link was right clicked and opened in a new tab, check the URL, and if the pattern is found, remove from storage
                 if(window.location.hostname == itemArr[2] && itemArr[3] == 'posts' && itemArr[4] == 'comments' && window.location.href.match("comment"+itemArr[5]+"_")) {
 
-                    // remove comment from list
+                    console.info("pageload :: remove comment from list");
                     removeItemFromStorage(item);                    
 
                 } else if(window.location.hostname == itemArr[2] && itemArr[3] == 'questions' && window.location.href.match(/\d*\#\d*$/) == itemArr[6]) {
 
-                    // remove answer to user's question from list
+                    console.info("pageload :: remove answer to user's question from list");
                     removeItemFromStorage(item);                 
                 }
             }
@@ -413,19 +515,30 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 //        if(storedUnreadItemsArr.length > 0) {
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('#portalLink').find(".unreadCount").length == 0) {
+                    if ($('.icon-inbox').find(".stackInbox-unread-count").length == 0) {
 
-                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                        /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                        showUnreadCount();
 
                     } else {
-
-                        $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
-                        $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
+                        /////
+                        /*$('.icon-inbox .stackInbox-unread-count').css('background-color', 'rgb(19, 151, 192)');
+                        $('.icon-inbox .stackInbox-unread-count').css('box-shadow', '0 0 8px 0 blue');*/
                     }
-                    console.log("show the unread count...");
-                    console.log("storedItem length = " + storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').show();
+                    console.log("pageload :: show the unread count...");
+                    console.log("pageload :: storedItem length = " + storedUnreadItemsArr.length);
+
+                    if($('.icon-inbox .stackInbox-unread-count').html().trim().length == 0) {
+                        showUnreadCount();
+                        $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
+                    } else {
+                        //var newCount = parseInt($('.icon-inbox > .stackInbox-unread-count').html()) + storedUnreadItemsArr.length;
+                        //$('.icon-inbox > .stackInbox-unread-count').html(newCount);
+                    }
+                    //$('.icon-inbox > .stackInbox-unread-count').show();
+                    /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                    showUnreadCount();
                 }
                 //// end TODO
 
@@ -450,10 +563,10 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
 
             if (window.localStorage.getItem("newItemCol").split(",") != "" && storedUnreadItemsArr != null) {
 
-                $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
+                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
 
-                $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                $('#portalLink > a.unreadCount').fadeIn(900);
+                $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
+                $('.icon-inbox > .stackInbox-unread-count').fadeIn(900);
 
             }
         }
@@ -461,9 +574,9 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
 
         top.window.storeNewInboxItems = storeNewInboxItems;
         function storeNewInboxItems() {
-            var newItemCol = $('#seContainerInbox').find('.itemBoxNew');
+            var newItemCol = $('.inbox-dialog').find('.unread-item');
             var newItemHrefArr = [];
-            $('#seContainerInbox').find('.itemBoxNew').find('a[href]:first').each(function () {
+            $('.inbox-dialog').find('.unread-item').find('a[href]:first').each(function () {
                 console.log($(this).attr("href"));
                 newItemHrefArr.push($(this).attr("href"));
             });
@@ -505,14 +618,15 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
 
         top.window.applyNewStyleToItems = applyNewStyleToItems;
         function applyNewStyleToItems() {
-
+ 
             if (window.localStorage.getItem("newItemCol") != null) {
                 var count = 0;
                 currentUnreadItemArr = window.localStorage.getItem("newItemCol").split(",");
                 console.info("currentUnreadItemArr.length = " + currentUnreadItemArr.length);
-                $('#seContainerInbox').find(".itemBox").each(function (e) {
+                $('.inbox-dialog').find(".inbox-item").each(function (e) {
                     if ($(this).find('a[href]:first').attr("href") == currentUnreadItemArr[e]) {
-                        $(this).addClass("itemBoxNew");
+                        $(this).addClass("unread-item");
+                        $(this).addClass("unread");
                         count++;
                     }
                 });
@@ -522,13 +636,17 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
                 }
 
                 for (var i = 0; i < currentUnreadItemArr.length; i++) {
-                    $('#seContainerInbox').find('.itemBox').find('a[href="' + currentUnreadItemArr[i] + '"]').parent().filter('div').addClass('itemBoxNew');
+                    $('.inbox-dialog').find('.inbox-item').find('a[href="' + currentUnreadItemArr[i] + '"]').parent().filter('li').addClass('unread-item');
                 }
 
-                count = $('#seContainerInbox').find(".itemBoxNew").length;
-                $('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
+                count = $('.inbox-dialog').find(".unread-item").length;
+                //$('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
+                $('.inbox-dialog .stackInbox-unread-count').html(count);
+                /////$('.icon-inbox').find('.stackInbox-unread-count').html(count).css('display','inline-block');
+                showUnreadCount();
                 if (count == 0) {
-                    $('#seTabInbox .unreadCountTab').hide();
+                    //$('#seTabInbox .unreadCountTab').hide();
+                    hideUnreadCount();
                 }
             } else {
                 return;
@@ -540,8 +658,8 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
         top.window.getNewCount = getNewCount;
         function getNewCount() {
             var newCount = 0;
-            if ($('#portalLink > .unreadCount').length > 0) {
-                newCount = parseInt($('#portalLink > .unreadCount').html());
+            if ($('.icon-inbox > .stackInbox-unread-count').length > 0) {
+                newCount = parseInt($('.icon-inbox > .stackInbox-unread-count').html());
             }
             return newCount;
         }
@@ -550,18 +668,17 @@ console.info("click handler = " + document.getElementById('seTabInbox').click);
         // when an inbox item is clicked, we remove it from storage, update the background process, then visit the link
         top.window.applyClickHandlersToStoredUnreadItems = applyClickHandlersToStoredUnreadItems;
         function applyClickHandlersToStoredUnreadItems() {
-            $('.itemBoxNew').each(function (e) {
+            $('.unread-item').each(function (e) {
                 console.log("add click event to link = " + $(this).find("a[href]").attr("href"));
                 $(this).find("a[href]").click(function (e) {
                     e.preventDefault();
                     console.log("link = " + $(this).attr("href"));
                     removeItemFromStorage($(this).attr("href"));
-                    $('.itemBoxNew > a[href="' + $(this).attr("href") + '"]').parent().removeClass("itemBoxNew");
-//console.info("click event for link, window.location" + window.location);
+                    $('.unread-item > a[href="' + $(this).attr("href") + '"]').parent().removeClass("unread-item");
+                    console.info("click event for link, window.location.href = " + window.location.href);
                     // now go to the link
-                    //window.location = $(this).attr("href");
-                    window.location.href = $(this).attr("href");
-console.info("click event for link, window.location.href = " + window.location.href);
+                    window.location = $(this).attr("href");
+
                     return false;
                 });
             });

@@ -10,7 +10,7 @@ var prefs = require("simple-prefs").prefs;
 var prefStorage;//
 
 // initialize for first run
-if(prefs.storage == undefined) {
+/*if(prefs.storage == undefined) {
     console.info("first run, initialize storage in prefs...");
     //prefs.storage = '{"stackInboxStorage":{"newItemCol":""}}';
     prefs.storage = '{"stackInboxStorage":{"accounts":{},"stackInbox":{"account-abc":{"account_id":0,"newItemCol":""}}}}';
@@ -18,26 +18,40 @@ if(prefs.storage == undefined) {
 prefStorage = prefs.storage;
   
 console.log("prefStorage on background page load = " + prefStorage.toString()); 
-
+*/
 // if simple-storage is undefined, pull what's in the prefs
 if(typeof(ss.storage.stackInboxStorage) === 'undefined') {
-  console.log("load: storage is undefined, so load from prefs...");
-  //ss.storage.stackInboxStorage = { "newItemCol": "http://pm.stackexchange.com/posts/comments/8830,http://meta.genealogy.stackexchange.com/posts/comments/1804,http://meta.pm.stackexchange.com/posts/comments/873,http://stackapps.com/questions/3778/stackinbox-a-chrome-extension-that-preserves-new-stack-exchange-inbox-messages/3808#3808" };
-  ss.storage.stackInboxStorage = JSON.parse(prefStorage);
-  console.info("storage pulled from prefs = " + JSON.parse(prefStorage));
+  console.log("load: storage is undefined, so set default"); //so load from prefs...");
+  ss.storage.stackInboxStorage = {"accounts":{},"stackInbox":{"account-abc":{"account_id":0,"newItemCol":""}}};
+  //ss.storage.stackInboxStorage = "http://workplace.stackexchange.com/posts/comments/47986?noredirect=1,http://meta.tor.stackexchange.com/posts/comments/235?noredirect=1"; 
+  //ss.storage.stackInboxStorage = JSON.parse(prefStorage);
+  //console.info("storage pulled from prefs = " + JSON.parse(prefStorage));
   /*ss.storage.stackInboxStorage = 
   { "accounts": {
   },
     "stackInbox": {
         "account-265671": {
             "account_id": 265671,
-            "newItemCol": "http://pm.stackexchange.com/posts/comments/8830,http://meta.genealogy.stackexchange.com/posts/comments/1804,http://meta.pm.stackexchange.com/posts/comments/873,http://stackapps.com/questions/3778/stackinbox-a-chrome-extension-that-preserves-new-stack-exchange-inbox-messages/3808#3808" 
+            "newItemCol": "http://workplace.stackexchange.com/posts/comments/47986?noredirect=1,http://meta.tor.stackexchange.com/posts/comments/235?noredirect=1" 
         }
     }
   };*/
 
 } else {
     console.log("storage defined!");
+    if(false)  // debug
+      ss.storage.stackInboxStorage = 
+        { "accounts": {
+            "stackoverflow-552792":265671
+        },
+        "stackInbox": {
+            "account-265671": {
+                "account_id": 265671,
+                "newItemCol": "http://workplace.stackexchange.com/posts/comments/47986?noredirect=1,http://meta.tor.stackexchange.com/posts/comments/235?noredirect=1" 
+            }
+        }
+      };
+    console.log("ss.storage.stackInboxStorage = " + ss.storage.stackInboxStorage );
 }
 
 //ss.storage.stackInboxStorage = { "newItemCol": "http://meta.workplace.stackexchange.com/posts/comments/1631,http://meta.pm.stackexchange.com/posts/comments/854,http://meta.stackoverflow.com/posts/comments/451077,http://stackoverflow.com/posts/comments/18539912,http://genealogy.stackexchange.com/posts/comments/3060,http://meta.stackoverflow.com/posts/comments/451392,http://meta.stackoverflow.com/posts/comments/451368,http://meta.stackoverflow.com/posts/comments/451407" };
@@ -48,7 +62,7 @@ pageMod.add(new pageMod.PageMod({
   include: ["*.stackoverflow.com","*.stackexchange.com","*.superuser.com",
       "*.serverfault.com","*.onstartups.com","*.stackapps.com","*.askubuntu.com"],
   //contentScript: "alert('injection');console.log('injected')"
-  contentScriptFile: [data.url('jquery-1.8.3.min.js'),data.url('stackInboxFirefox.js')],
+  contentScriptFile: [data.url('jquery-2.1.0.min.js'),data.url('stackInboxFirefox.js')],
   contentScriptOptions: {
     stackInboxStorage: ss.storage.stackInboxStorage
   },

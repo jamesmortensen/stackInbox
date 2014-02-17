@@ -368,6 +368,15 @@ function injectScriptInSE(stackInboxStorage) {
                 //$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
 
             } else {
+                var items = getStoredUnreadItems();
+                var count = 0;
+                $('.icon-inbox .unread-count').html("");
+                if(items != null) {
+                    count = items.length;
+                    console.info("observer2 :: the count should be updated to be " + count);
+                    $('.icon-inbox .stackInbox-unread-count').html(count);
+                }
+
                 showUnreadCount();
                 $('.icon-inbox .stackInbox-unread-count').show();
             }
@@ -402,7 +411,7 @@ function injectScriptInSE(stackInboxStorage) {
 
         top.window.trimStoredItems = trimStoredItems;
 
-        function trimStoredItems() {return;
+        function trimStoredItems() {
             var storedItems = getStoredUnreadItems();
             console.log("trimStoredItems:: storedItems == null ? " + (storedItems == null));
             if (storedItems != null) {
@@ -476,12 +485,12 @@ function injectScriptInSE(stackInboxStorage) {
                 // if the link was right clicked and opened in a new tab, check the URL, and if the pattern is found, remove from storage
                 if(window.location.hostname == itemArr[2] && itemArr[3] == 'posts' && itemArr[4] == 'comments' && window.location.href.match("comment"+itemArr[5]+"_")) {
 
-                    // remove comment from list
+                    console.info("pageload :: remove comment from list");
                     removeItemFromStorage(item);                    
 
                 } else if(window.location.hostname == itemArr[2] && itemArr[3] == 'questions' && window.location.href.match(/\d*\#\d*$/) == itemArr[6]) {
 
-                    // remove answer to user's question from list
+                    console.info("pageload :: remove answer to user's question from list");
                     removeItemFromStorage(item);                 
                 }
             }
@@ -651,7 +660,7 @@ function injectScriptInSE(stackInboxStorage) {
                     console.log("link = " + $(this).attr("href"));
                     removeItemFromStorage($(this).attr("href"));
                     $('.unread-item > a[href="' + $(this).attr("href") + '"]').parent().removeClass("unread-item");
-
+                    console.info("click event for link, window.location.href = " + window.location.href);
                     // now go to the link
                     window.location = $(this).attr("href");
 
