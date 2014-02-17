@@ -220,6 +220,8 @@ function injectScriptInSE(stackInboxStorage) {
         // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
         $('.icon-inbox').click(function () {
             console.log("Clicked SE menu");
+            $('.stackInbox-unread-count').hide();
+            $('.stackInbox-unread-count').css('display','none');
             //$('#seTabInbox').click(); // UNCOMMENT ME
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
@@ -250,32 +252,35 @@ function injectScriptInSE(stackInboxStorage) {
         });
 
         // this is to keep the unread count visible when closing the notification panel
-        $('body').click(function () {
-            
+        $('body').click(function () {return;            
             console.debug("body click event fired...");
-           // if ($('.unread-count:visible').length > 0) {
+           // if ($('.stackInbox-unread-count:visible').length > 0) {
                 console.debug("unread count visible...");
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('.icon-inbox').find(".unread-count").length == 0) {
+                    if ($('.icon-inbox').find(".stackInbox-unread-count").length == 0) {
 
-                        // add the unread count bubble to the inbox
+                        console.info("add the unread count bubble to the inbox");
                         //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-                        $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                        /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                        showUnreadCount();
 
                     } else {
                         //event.preventDefault();event.stopPropagation();
                         // bubble already present, so just change the colors
-                        $('.icon-inbox > .unread-count').css('background-color', 'rgb(19, 151, 192)');
-                        $('.icon-inbox > .unread-count').css('box-shadow', '0 0 8px 0 blue');
-                        $('.icon-inbox > .unread-count').css('display', 'inline-block');
+                        /////
+                        /*$('.icon-inbox > .stackInbox-unread-count').css('background-color', 'rgb(19, 151, 192)');
+                        $('.icon-inbox > .stackInbox-unread-count').css('box-shadow', '0 0 8px 0 blue');
+                        $('.icon-inbox > .stackInbox-unread-count').css('display', 'inline-block');*/
 
                     }
                     console.log("body.click :: show the unread count...");
                     console.log("body.click :: storedItem length = " + storedUnreadItemsArr.length);
-                    $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
-                    $('.icon-inbox > .unread-count').show();
-                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                    showUnreadCount();
+                    $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
+                    $('.icon-inbox > .stackInbox-unread-count').show();
+                    /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                   
                     
                     $('.icon-site-switcher-on').removeClass('icon-site-switcher-on');
                     $('.topbar-icon-on').removeClass('topbar-icon-on');
@@ -325,6 +330,7 @@ function injectScriptInSE(stackInboxStorage) {
          console.log("inside callback....");
          mutations.forEach(function(mutation) {
            console.log(mutation);
+           if(mutation.previousSibling.nodeType == 1)
            for (var i = 0; i < mutation.addedNodes.length; i++) {
              console.log("push...");
              insertedNodes.push(mutation.addedNodes[i]);
@@ -339,27 +345,60 @@ function injectScriptInSE(stackInboxStorage) {
                    applyNewStyleToItems();
                    applyClickHandlersToStoredUnreadItems();
                 } 
-             } if(true || mutation.target.className == "unread-count") {
-                console.debug("UNREAD TARGET");
-                if ($('.icon-inbox').find(".unread-count").length > 0) {
-                    console.debug("keep the unread count visible if there's a value there");
-                    // add the unread count bubble to the inbox
-                    //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
-                }
-            }
-           }
-           console.info("DONE!");
-           insertedNodes = [];
+             }
+           } 
          })
         });
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+        observer.observe(document.querySelector(".js-topbar-dialog-corral"), { childList: true, subtree: false, attributes: false });
         console.log(insertedNodes);
+
+
+
+        var observer2 = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+           if(mutation.target.className == "unread-count") {
+            console.debug("UNREAD TARGET");
+            if ($('.icon-inbox').find(".unread-count:visible").length > 0) {
+                console.debug("keep the unread count visible if there's a value there");
+                hideUnreadCount();
+                // add the unread count bubble to the inbox
+                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
+                /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                //showUnreadCount();
+                //$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+
+            } else {
+                showUnreadCount();
+                $('.icon-inbox .stackInbox-unread-count').show();
+            }
+           }
+       
+           if(mutation.target.className == "unread-count" && mutation.attributeName == "style" && mutation.target.style.display == "") {   //&& mutation.target.outerHTML.match(/inline/) != null) {
+               hideUnreadCount();
+               console.info("span.stackInbox-unread-count mutator fires for style");
+           }
+           console.info("DONE!");
+
+         })
+        });
+        observer2.observe(document.querySelector(".icon-inbox .unread-count"), { childList: true, subtree: true, attributes: true });
+        
 
         // debugging
         function getInsertedNodes() { return insertedNodes; }
         top.window.getInsertedNodes = getInsertedNodes;
 
+        function showUnreadCount() {
+            if($('.icon-inbox .unread-count').css('background-color') == "rgb(255, 0, 0)" && $('.icon-inbox .unread-count').html().trim().length > 0) {
+                console.info("don't change the color if it's red");
+            } else {
+                $('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+            }
+        }
+
+        function hideUnreadCount() {
+            $('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+        }
 
         top.window.trimStoredItems = trimStoredItems;
 
@@ -422,7 +461,7 @@ function injectScriptInSE(stackInboxStorage) {
             "    font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif !important;" +
             "}</style>");
 
-            $('.unread-count').parent().append('<span class="stackInbox-unread-count">6</span>');
+            $('.unread-count').parent().append('<span style="display:none" class="stackInbox-unread-count"></span>');
 
             var newItemColArr = stackInboxStorage.newItemCol.split(',');
             var item;
@@ -452,21 +491,30 @@ function injectScriptInSE(stackInboxStorage) {
                 var storedUnreadItemsArr = getStoredUnreadItems();
                 //        if(storedUnreadItemsArr.length > 0) {
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('.icon-inbox').find(".unread-count").length == 0) {
+                    if ($('.icon-inbox').find(".stackInbox-unread-count").length == 0) {
 
                         //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-                        $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                        /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                        showUnreadCount();
 
                     } else {
-
-                        $('.icon-inbox .unread-count').css('background-color', 'rgb(19, 151, 192)');
-                        $('.icon-inbox .unread-count').css('box-shadow', '0 0 8px 0 blue');
+                        /////
+                        /*$('.icon-inbox .stackInbox-unread-count').css('background-color', 'rgb(19, 151, 192)');
+                        $('.icon-inbox .stackInbox-unread-count').css('box-shadow', '0 0 8px 0 blue');*/
                     }
                     console.log("pageload :: show the unread count...");
                     console.log("pageload :: storedItem length = " + storedUnreadItemsArr.length);
-                    $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
-                    $('.icon-inbox > .unread-count').show();
-                    $('.icon-inbox').find('.unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+
+                    if($('.icon-inbox .stackInbox-unread-count').html().trim().length == 0) {
+                        showUnreadCount();
+                        $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
+                    } else {
+                        //var newCount = parseInt($('.icon-inbox > .stackInbox-unread-count').html()) + storedUnreadItemsArr.length;
+                        //$('.icon-inbox > .stackInbox-unread-count').html(newCount);
+                    }
+                    //$('.icon-inbox > .stackInbox-unread-count').show();
+                    /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                    showUnreadCount();
                 }
                 //// end TODO
 
@@ -493,8 +541,8 @@ function injectScriptInSE(stackInboxStorage) {
 
                 //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
 
-                $('.icon-inbox > .unread-count').html(storedUnreadItemsArr.length);
-                $('.icon-inbox > .unread-count').fadeIn(900);
+                $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
+                $('.icon-inbox > .stackInbox-unread-count').fadeIn(900);
 
             }
         }
@@ -569,9 +617,12 @@ function injectScriptInSE(stackInboxStorage) {
 
                 count = $('.inbox-dialog').find(".unread-item").length;
                 //$('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
-                $('.icon-inbox').find('.unread-count').html(count).css('display','block');
+                $('.inbox-dialog .stackInbox-unread-count').html(count);
+                /////$('.icon-inbox').find('.stackInbox-unread-count').html(count).css('display','inline-block');
+                showUnreadCount();
                 if (count == 0) {
-                    $('#seTabInbox .unreadCountTab').hide();
+                    //$('#seTabInbox .unreadCountTab').hide();
+                    hideUnreadCount();
                 }
             } else {
                 return;
@@ -583,8 +634,8 @@ function injectScriptInSE(stackInboxStorage) {
         top.window.getNewCount = getNewCount;
         function getNewCount() {
             var newCount = 0;
-            if ($('.icon-inbox > .unread-count').length > 0) {
-                newCount = parseInt($('.icon-inbox > .unread-count').html());
+            if ($('.icon-inbox > .stackInbox-unread-count').length > 0) {
+                newCount = parseInt($('.icon-inbox > .stackInbox-unread-count').html());
             }
             return newCount;
         }
