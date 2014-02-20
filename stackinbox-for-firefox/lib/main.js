@@ -47,7 +47,7 @@ if(typeof(ss.storage.stackInboxStorage) === 'undefined') {
         "stackInbox": {
             "account-265671": {
                 "account_id": 265671,
-                "newItemCol": "http://workplace.stackexchange.com/posts/comments/47986?noredirect=1,http://meta.tor.stackexchange.com/posts/comments/235?noredirect=1" 
+                "newItemCol": "http://workplace.stackexchange.com/posts/comments/48262?noredirect=1,http://freelancing.stackexchange.com/posts/comments/1698?noredirect=1" 
             }
         }
       };

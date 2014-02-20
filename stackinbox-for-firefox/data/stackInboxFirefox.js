@@ -677,7 +677,7 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
                     $('.unread-item > a[href="' + $(this).attr("href") + '"]').parent().removeClass("unread-item");
                     console.info("click event for link, window.location.href = " + window.location.href);
                     // now go to the link
-                    window.location = $(this).attr("href");
+                    window.location.href = $(this).attr("href");
 
                     return false;
                 });
