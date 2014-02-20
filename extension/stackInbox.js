@@ -21,7 +21,7 @@
 // @include   http://*.askubuntu.com/*
 // @include   http://askubuntu.com/*
 //
-// @history   Updated class names to work with the new top navigation as of Feb 2014
+// @history   Updated to work with the new top navigation as of Feb 2014
 //
 // ==/UserScript==
 
