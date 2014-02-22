@@ -12,12 +12,12 @@
    "description": "Preserves New Stack Exchange Inbox Messages Until They Are Actually Read.",
    "name": "StackInbox",
    "homepage_url": "http://stackapps.com/q/3778/4812",
-   "version": "1.1",
+   "version": "1.1.1",
    "manifest_version": 2,
    "permissions" : [
        "storage", "https://api.stackexchange.com/*"
    ],
-   "icons": { "16": "StackInbox128-7.png",
-           "48": "StackInbox128-7.png",
-          "128": "StackInbox128-7.png" }
+   "icons": { "16": "16-StackInbox.png",
+           "48": "48-StackInbox.png",
+          "128": "128-StackInbox.png" }
 }
