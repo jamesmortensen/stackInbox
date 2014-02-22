@@ -9,5 +9,8 @@ A browser add-on to preserve inbox messages on Stack Exchange until they are act
 
 **userscript** - Originally, I tried writing as a userscript, but I wasn't able to sync with all *.stackexchange.com domains, so I converted to individual browser add-ons. This is here for historical references.
 
+----
+
+*This product is not affiliated with Stack Exchange™. [The Stack Exchange™ name and logos are trademarks of Stack Exchange Inc. The names and logos for sites and products operating on the Stack Exchange™ network are also trademarks of Stack Exchange™ Inc.](http://stackexchange.com/legal/trademark-guidance)*
 
 ![StackInbox Unread yet Viewed Items](Screen%20Shot%202014-02-20%20at%2011.40.09%20PM.png)
