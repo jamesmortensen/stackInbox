@@ -1,43 +1,7 @@
-// ==UserScript==
-// @name          StackInbox 
-// @namespace     http://stackapps.com/q/3778/4812
-// @author        jmort253 (http://stackoverflow.com/users/552792)
-// @description   Keeps unread items highlighted in the Stack Exchange inbox until each item is read.
-// @homepage      http://stackapps.com/q/3778/4812
-// @copyright     2012, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
-// @license       BSD License
-// @version       0.0.2
-//
-//
-// @include   http://stackapps.com/*
-// @include   http://*.stackoverflow.com/*
-// @include   http://stackoverflow.com/*
-// @include   http://*.serverfault.com/*
-// @include   http://serverfault.com/*
-// @include   http://*.superuser.com/*
-// @include   http://superuser.com/*
-// @include   http://*.stackexchange.com/*
-// @include   http://*.onstartups.com/*
-//
-// ==/UserScript==
-
-// injects script into the http context
-function with_jquery(f, data) {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.textContent = "(" + f.toString() + ")(jQuery, " + JSON.stringify(data)+ ")";
-    document.body.appendChild(script);
-};
+console.info("info");
+console.log("log");
 
 
-console.info("info");console.log("log");
-
-//injectScriptInSE(self.options.stackInboxStorage);
-
-//window.addEventListener("load", function() { alert("load")
-console.log("test test");
-    //injectScriptInSE();
-    //return;
 function preload() {
     // hook to deal with pageloads for chat messages from the inbox
     // TODO: Yet to be implemented due to unknown method to determine current user in transcript page
@@ -48,7 +12,7 @@ function preload() {
            
         return;
     }
-console.debug("GET PROFILE INFO")
+    console.debug("GET PROFILE INFO");
     // scrape the user profile information
     var profileArr = document.querySelector(".topbar-links a.profile-me").getAttribute("href").split("/");  
     var userId = profileArr[2];
@@ -60,12 +24,10 @@ console.debug("GET PROFILE INFO")
         site += urlArr[i]+".";
     }
     site = site.slice(0,site.length-1);
-console.info("userId = " + userId);
+    console.info("userId = " + userId);
     // assume computer may be used by more than one SE user, so get user's accountId from display name
     getAccountIdFromStorage({"site" : site, "userId" : userId, "displayName" : displayName }, injectScriptInSE);
 }
- //});
-//preload();
 
 
 function getAccountIdFromStorage(siteUser, injectScript) {
@@ -220,7 +182,7 @@ function injectScriptInSE(stackInboxStorage) {
 //    with_jquery(function ($, stackInboxStorage) {
 console.log("inside injectscript");
 
-console.info("storage = " + stackInboxStorage.newItemCol);//return;
+console.info("storage = " + stackInboxStorage);//return;
 
         if(stackInboxStorage != undefined || stackInboxStorage != null) {
             console.info("stackInboxStorage = " + JSON.stringify(stackInboxStorage));
@@ -240,100 +202,18 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
 
         pageload();
 
-        // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
+        
         $('.icon-inbox').click(function () {
             console.log("Clicked SE menu");
             $('.stackInbox-unread-count').hide();
             $('.stackInbox-unread-count').css('display','none');
-            //$('#seTabInbox').click(); // UNCOMMENT ME
+            
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
             var storedUnreadItemsArr = getStoredUnreadItems();
-            //    if(storedUnreadItemsArr.length > 0) {
-            if (window.localStorage.getItem("newItemCol").split(",") != "") {
-            
-                console.info("clicked portalLink....");
-
-                // not sure why this block is needed, seems to do the same as the block in the body click event, but commenting
-                 // even doesn't seem to matter...                
-                /*if ($('#portalLink').find(".unreadCount").length == 0) {
-                    $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:orange; "></a>');
-                } else {
-                    $('#portalLink .unreadCount').css('background-color', 'yellow');
-                }
-                $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                $('#portalLink > a.unreadCount').show();*/
-
-
-                /*        if( ) {
-            window.localStorage.removeItem("newItemCol");
-
-        }     */
-            }
-
 
         });
 
-        // this is to keep the unread count visible when closing the notification panel
-        $('body').click(function () { return;
-
-            if ($('#seWrapper:visible').length > 0) {
-
-                var storedUnreadItemsArr = getStoredUnreadItems();
-                if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
-                    if ($('#portalLink').find(".unreadCount").length == 0) {
-
-                        // add the unread count bubble to the inbox
-                        $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-
-                    } else {
-                        // bubble already present, so just change the colors
-                        $('#portalLink .unreadCount').css('background-color', 'rgb(19, 151, 192)');
-                        $('#portalLink .unreadCount').css('box-shadow', '0 0 8px 0 blue');
-                    }
-                    console.log("show the unread count...");
-                    console.log("storedItem length = " + storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                    $('#portalLink > a.unreadCount').show();
-                }
-            }
-
-        });
-
-
-        // since the inbox contents aren't loaded until clicked, this forces the 
-        // applyNewStyleToItems function to wait until the data is loaded
-        // TODO: There's a better way to do this and listen for DOM changes
-        /*document.addEventListener("DOMNodeInserted", function (event) {
-            var element = event.target;
-
-            if (element.tagName == 'DIV') {
-                if (element.id == 'seContainerInbox') {
-                    $('#seTabInbox').click();
-                    //console.info($('#seContainerInbox').parent().get(0).tagName);
-                    trimStoredItems();
-                    $('#seTabInbox').click();
-
-                    // if there are new inbox items, store them for later
-                    storeNewInboxItems();
-
-                    applyNewStyleToItems();
-                    applyClickHandlersToStoredUnreadItems();
-
-                } else if(element.id == 'seContainerHot') {
-                    console.info("seContainerHot loaded...");
-                    if (window.localStorage.getItem("newItemCol").split(",") != "") {
-                        console.info("there are unread messages...");
-                        window.setTimeout(function() {
-                            console.info("Click!!!!!");
-                            $('#seTabInbox').click();
-                        },3000);
-                        //document.getElementById("seTabInbox").click();
-                        console.info("programmatically clicked seTabInbox");
-                    }
-                }
-            }
-        });*/
 
        /*
          * Detect changes in the DOM using event-based methodology so we apply styles
@@ -375,12 +255,7 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
             if ($('.icon-inbox').find(".unread-count:visible").length > 0) {
                 console.debug("keep the unread count visible if there's a value there");
                 hideUnreadCount();
-                // add the unread count bubble to the inbox
-                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-                /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
-                //showUnreadCount();
-                //$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
-
+                
             } else {
                 var items = getStoredUnreadItems();
                 var count = 0;
@@ -467,7 +342,6 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
 
 
         // runs in the page context to deploy business logic
-        // runs in the page context to deploy business logic
         top.window.pageload = pageload;
         function pageload() {
 
@@ -517,27 +391,17 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
                 if (storedUnreadItemsArr != "" && storedUnreadItemsArr != null) {
                     if ($('.icon-inbox').find(".stackInbox-unread-count").length == 0) {
 
-                        //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;"></a>');
-                        /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
                         showUnreadCount();
 
-                    } else {
-                        /////
-                        /*$('.icon-inbox .stackInbox-unread-count').css('background-color', 'rgb(19, 151, 192)');
-                        $('.icon-inbox .stackInbox-unread-count').css('box-shadow', '0 0 8px 0 blue');*/
-                    }
+                    } 
                     console.log("pageload :: show the unread count...");
                     console.log("pageload :: storedItem length = " + storedUnreadItemsArr.length);
 
                     if($('.icon-inbox .stackInbox-unread-count').html().trim().length == 0) {
                         showUnreadCount();
                         $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
-                    } else {
-                        //var newCount = parseInt($('.icon-inbox > .stackInbox-unread-count').html()) + storedUnreadItemsArr.length;
-                        //$('.icon-inbox > .stackInbox-unread-count').html(newCount);
-                    }
-                    //$('.icon-inbox > .stackInbox-unread-count').show();
-                    /////$('.icon-inbox').find('.stackInbox-unread-count').attr('style','display: inline-block;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue;');
+                    } 
+
                     showUnreadCount();
                 }
                 //// end TODO
@@ -562,8 +426,6 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
             var storedUnreadItemsArr = getStoredUnreadItems();
 
             if (window.localStorage.getItem("newItemCol").split(",") != "" && storedUnreadItemsArr != null) {
-
-                //$('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: none;background-color:rgb(19, 151, 192);box-shadow: 0 0 8px 0 blue; "></a>');
 
                 $('.icon-inbox > .stackInbox-unread-count').html(storedUnreadItemsArr.length);
                 $('.icon-inbox > .stackInbox-unread-count').fadeIn(900);
@@ -640,12 +502,11 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
                 }
 
                 count = $('.inbox-dialog').find(".unread-item").length;
-                //$('#seTabInbox').html('<span class="unreadCountTab" style="background-color:rgb(19, 151, 192);">' + count + '</span>Inbox');
+
                 $('.inbox-dialog .stackInbox-unread-count').html(count);
-                /////$('.icon-inbox').find('.stackInbox-unread-count').html(count).css('display','inline-block');
+
                 showUnreadCount();
                 if (count == 0) {
-                    //$('#seTabInbox .unreadCountTab').hide();
                     hideUnreadCount();
                 }
             } else {
@@ -676,6 +537,7 @@ console.info("storage = " + stackInboxStorage.newItemCol);//return;
                     removeItemFromStorage($(this).attr("href"));
                     $('.unread-item > a[href="' + $(this).attr("href") + '"]').parent().removeClass("unread-item");
                     console.info("click event for link, window.location.href = " + window.location.href);
+                    
                     // now go to the link
                     window.location.href = $(this).attr("href");
 

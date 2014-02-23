@@ -2,8 +2,8 @@
    "content_scripts": [ {
       "exclude_globs": [  ],
       "exclude_matches": [  ],
-      "include_globs": [ "http://stackapps.com/*", "http://*.stackoverflow.com/*", "http://*.stackexchange.com/*", "http://stackoverflow.com/*", "http://*.onstartups.com/*", "http://serverfault.com/*", "http://*.serverfault.com/*", "http://superuser.com/*", "http://*.superuser.com/*", 
-      "http://askubuntu.com", "http://*.askubuntu.com" ],
+      "include_globs": [ "http://stackapps.com/*", "http://*.stackoverflow.com/*", "http://*.stackexchange.com/*", "http://stackoverflow.com/*", "http://serverfault.com/*", "http://*.serverfault.com/*", "http://superuser.com/*", "http://*.superuser.com/*", 
+      "http://askubuntu.com/*", "http://*.askubuntu.com/*", "http://mathoverflow.net/*", "http://*.mathoverflow.net/*" ],
       "js": [ "stackInbox.js" ],
       "matches": [ "http://*/*", "https://*/*" ],
       "run_at": "document_idle"
@@ -12,7 +12,7 @@
    "description": "Preserves New Stack Exchange Inbox Messages Until They Are Actually Read.",
    "name": "StackInbox",
    "homepage_url": "http://stackapps.com/q/3778/4812",
-   "version": "1.1.1",
+   "version": "1.1.2",
    "manifest_version": 2,
    "permissions" : [
        "storage", "https://api.stackexchange.com/*"

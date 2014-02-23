@@ -1,30 +1,3 @@
-// ==UserScript==
-// @name          StackInbox 
-// @namespace     http://stackapps.com/q/3778/4812
-// @author        jmort253 (http://stackoverflow.com/users/552792)
-// @description   Keeps unread items highlighted in the Stack Exchange inbox until each item is read.
-// @homepage      http://stackapps.com/q/3778/4812
-// @copyright     2012-2014, James Mortensen (http://stackoverflow.com/users/552792/jmort253) 
-// @license       BSD License
-// @version       1.1
-//
-//
-// @include   http://stackapps.com/*
-// @include   http://*.stackoverflow.com/*
-// @include   http://stackoverflow.com/*
-// @include   http://*.serverfault.com/*
-// @include   http://serverfault.com/*
-// @include   http://*.superuser.com/*
-// @include   http://superuser.com/*
-// @include   http://*.stackexchange.com/*
-// @include   http://*.onstartups.com/*
-// @include   http://*.askubuntu.com/*
-// @include   http://askubuntu.com/*
-//
-// @history   Updated to work with the new top navigation as of Feb 2014
-//
-// ==/UserScript==
-
 // injects script into the http context
 function with_jquery(f, data) {
     var script = document.createElement("script");
@@ -217,12 +190,12 @@ function injectScriptInSE(stackInboxStorage) {
 
         pageload();
 
-        // <li><a id="seTabInbox" class="seCurrent"><span class="unreadCountTab">1</span>Inbox</a></li>
+        
         $('.icon-inbox').click(function () {
             console.log("Clicked SE menu");
             $('.stackInbox-unread-count').hide();
             $('.stackInbox-unread-count').css('display','none');
-            //$('#seTabInbox').click(); // UNCOMMENT ME
+            
             applyNewStyleToItems();
             applyClickHandlersToStoredUnreadItems();
             var storedUnreadItemsArr = getStoredUnreadItems();
@@ -231,21 +204,6 @@ function injectScriptInSE(stackInboxStorage) {
             
                 console.info("clicked portalLink....");
 
-                // not sure why this block is needed, seems to do the same as the block in the body click event, but commenting
-                 // even doesn't seem to matter...                
-                /*if ($('#portalLink').find(".unreadCount").length == 0) {
-                    $('#portalLink').append('<a class="unreadCount" title="unread messages in your inbox" style="margin-top: 3px; opacity: 1; display: block;background-color:orange; "></a>');
-                } else {
-                    $('#portalLink .unreadCount').css('background-color', 'yellow');
-                }
-                $('#portalLink > a.unreadCount').html(storedUnreadItemsArr.length);
-                $('#portalLink > a.unreadCount').show();*/
-
-
-                /*        if( ) {
-            window.localStorage.removeItem("newItemCol");
-
-        }     */
             }
 
 
