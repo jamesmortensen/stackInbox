@@ -163,6 +163,9 @@ self.on("message", function(addonMessage) {
 window.addEventListener("message", function(event) { 
     console.info("data received = " + JSON.stringify(event.data));
     
+    /*if(m_storage === undefined) {
+        m_storage = {stackInbox: {}};
+    }*/
     m_storage.stackInbox["account-" + event.data.account_id] = {"newItemCol" : event.data.newItemCol, "account_id" : event.data.account_id };
     
     chrome.storage.local.set(m_storage, function() { } );

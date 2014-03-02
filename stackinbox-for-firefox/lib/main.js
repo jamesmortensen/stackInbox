@@ -9,11 +9,12 @@ var data = require("self").data;
 // if simple-storage is undefined, setup the default data structure
 if(typeof(ss.storage.stackInboxStorage) === 'undefined') {
   console.log("load: storage is undefined, so set default"); //so load from prefs...");
-  ss.storage.stackInboxStorage = {"accounts":{},"stackInbox":{"account-abc":{"account_id":0,"newItemCol":""}}};
+  //ss.storage.stackInboxStorage = {"accounts":{},"stackInbox":{"account-abc":{"account_id":0,"newItemCol":""}}};
+  ss.storage.stackInboxStorage = {};
   
 } else {
     console.log("storage defined!");
-    if(true)  // debug
+    if(false)  // debug
       ss.storage.stackInboxStorage = 
         { "accounts": {
             "stackoverflow-552792":265671
