@@ -105,8 +105,8 @@ function getDataFromApi(siteUser, storage, injectScript) {
         }
     })(siteUser, storage, injectScript);  // Implemented elsewhere.
 
-    console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
-    xhr.open("GET", "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
+    console.info("make request to " + "https://api.stackexchange.com/2.2/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
+    xhr.open("GET", "https://api.stackexchange.com/2.2/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
     xhr.send();    
     
 }
@@ -321,18 +321,6 @@ console.info("storage = " + stackInboxStorage);//return;
             }
         }
 
-
-        // for cross domain json requests. 
-        // TODO: This is currently unused. Remove if determined to not be needed
-        top.window.jsonp = jsonp;
-        function jsonp(url, callback) {
-            return;
-            var script = document.createElement("script");
-            script.setAttribute("type", "text/javascript");
-            script.setAttribute("src", url + "&t=" + new Date().getTime());
-            document.getElementsByTagName("head")[0].appendChild(script);
-
-        }
         
 
         // update the Chrome Extension storage by passing the data, with accountId, back to the background process to be stored.        

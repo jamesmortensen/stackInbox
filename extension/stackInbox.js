@@ -110,8 +110,8 @@ function getDataFromApi(siteUser, storage, injectScript) {
         }
     })(siteUser, storage, injectScript);  // Implemented elsewhere.
 
-    console.info("make request to " + "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
-    xhr.open("GET", "https://api.stackexchange.com/2.1/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
+    console.info("make request to " + "https://api.stackexchange.com/2.2/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D");
+    xhr.open("GET", "https://api.stackexchange.com/2.2/users?order=desc&sort=reputation&inname="+siteUser.displayName+"&site="+siteUser.site+"&filter=!*MxJcsxUhQG*kL8D", true);
     xhr.send();    
     
 }
