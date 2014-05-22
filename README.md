@@ -14,7 +14,7 @@ A browser add-on to preserve inbox messages on Stack Exchange until they are act
 
 ##Installation
 
-For installation instructions, visit the [StackInbox page on StackApps](http://stackapps.com/q/3778/4812)
+For installation instructions, visit the [StackInbox page on StackApps](http://stackapps.com/q/3778/4812). For questions, you can find me either on Stack Exchange or as [@jmort253](https://twitter.com/jmort253) on Twitter.
 
 ![StackInbox Unread yet Viewed Items](Screen%20Shot%202014-02-20%20at%2011.40.09%20PM.png)
 
